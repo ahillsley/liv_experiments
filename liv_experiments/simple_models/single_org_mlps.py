@@ -10,11 +10,13 @@ from tqdm import tqdm
 import time
 
 test_frac = 0.2
-dataset = pd.read_csv('../datasets/organelle_dataset_1_09_24.csv')
+dataset = pd.read_csv('../../datasets/NO_SOLIDITY_NEW_organelle_dataset_02_14_24.csv')
 dataset.replace([np.inf, -np.inf], np.nan, inplace=True)
 dataset.dropna(inplace=True)
 # %%
 org_of_interest = 4
+org = 'peroxisome'
+date = '022124'
 single_org_data = dataset[dataset['org_type'] == org_of_interest]
 labels = np.array(single_org_data['ascini_position'])
 data = np.array(single_org_data.drop(['Unnamed: 0', 'ascini_position', 'centroid-0', 'centroid-1', 'cell_id', 'asinus', 'cutoff', 'org_type'], axis=1))
@@ -80,4 +82,6 @@ print('-'*50)
 print(f'ran in {time.time()-start_time:.3f}')
 print('-'*50)
 
-torch.save(model.state_dict(),'models/peroxi_mlp_013124' )
+#%%
+torch.save(model.state_dict(),f'models/{org}_mlp_{date}' )
+np.save(f'models/{org}_{date}_losses.npy', np.asarray(losses))
