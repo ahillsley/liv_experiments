@@ -9,19 +9,35 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import time
 
-#%%
-model_path = 'models/peroxi_mlp_013124'
+# %%
+model_path = "../liv_experiments/simple_models/models/lipid_droplet_mlp_022124"
 org_of_interest = 4
-device='cpu'
+device = "cpu"
 test_frac = 0.05
-dataset = pd.read_csv('../datasets/organelle_dataset_1_09_24.csv')
+dataset = pd.read_csv("../datasets/organelle_dataset_1_09_24.csv")
 dataset.replace([np.inf, -np.inf], np.nan, inplace=True)
 dataset.dropna(inplace=True)
 # %%
-single_org_data = dataset[dataset['org_type'] == org_of_interest]
-labels = np.array(single_org_data['ascini_position'])
-data = np.array(single_org_data.drop(['Unnamed: 0', 'ascini_position', 'centroid-0', 'centroid-1', 'cell_id', 'asinus', 'cutoff', 'org_type'], axis=1))
-test_rows = np.random.choice(np.arange(0, len(data)), int(test_frac * len(data)), replace=False)
+single_org_data = dataset[dataset["org_type"] == org_of_interest]
+labels = np.array(single_org_data["ascini_position"])
+data = np.array(
+    single_org_data.drop(
+        [
+            "Unnamed: 0",
+            "ascini_position",
+            "centroid-0",
+            "centroid-1",
+            "cell_id",
+            "asinus",
+            "cutoff",
+            "org_type",
+        ],
+        axis=1,
+    )
+)
+test_rows = np.random.choice(
+    np.arange(0, len(data)), int(test_frac * len(data)), replace=False
+)
 
 test_data = data[test_rows, :]
 train_data = np.delete(data, test_rows, axis=0)
@@ -30,9 +46,7 @@ test_labels = np.array(labels)[test_rows]
 train_labels = np.delete(labels, test_rows)
 
 model = MLP(
-    in_channels=4,
-    hidden_channels=[32, 32, 32, 32, 1],
-    activation_layer=torch.nn.ReLU
+    in_channels=4, hidden_channels=[32, 32, 32, 32, 1], activation_layer=torch.nn.ReLU
 )
 model.load_state_dict(torch.load(model_path))
 model.eval()
@@ -41,15 +55,25 @@ with torch.no_grad():
     prediction_tensor = model(test_tensor.to(device).float())
 prediction = prediction_tensor.detach().numpy()
 # %%
-plt.scatter(
-    test_labels,
-    prediction,
-    alpha=0.1,
-    s=5)
+plt.scatter(test_labels, prediction, alpha=0.1, s=5)
 ax = plt.gca()
-ax.set_aspect('equal')
-plt.xlabel('True Acinus Position')
-plt.ylabel('Predicted Acinus Position')
-plt.ylim([-1,1])
+ax.set_aspect("equal")
+plt.xlabel("True Acinus Position")
+plt.ylabel("Predicted Acinus Position")
+plt.ylim([-1, 1])
+plt.figure()
+# %%
+mito_loss = np.load("../liv_experiments/simple_models/models/mito_022124_losses.npy")
+plt.plot(mito_loss)
+plt.figure()
+ld_loss = np.load(
+    "../liv_experiments/simple_models/models/lipid_droplet_022124_losses.npy"
+)
+plt.plot(ld_loss)
+plt.figure()
+peroxi_loss = np.load(
+    "../liv_experiments/simple_models/models/peroxisome_022124_losses.npy"
+)
+plt.plot(peroxi_loss)
 plt.figure()
 # %%

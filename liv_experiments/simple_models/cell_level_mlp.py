@@ -7,6 +7,7 @@ import torch.nn as nn
 from torchvision.ops import MLP
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import sklearn
 
 # %%
 test_frac = 0.2
@@ -87,7 +88,7 @@ model = MLP(
     hidden_channels=[32, 32, 32, 32, 1],
     activation_layer=torch.nn.ReLU,
 )
-
+# %%
 model.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
 loss_func = nn.MSELoss()
@@ -129,4 +130,14 @@ plt.figure()
 plt.plot(np.arange(epochs), losses)
 plt.xlabel("Epoch")
 plt.ylabel("Loss")
+# %%
+model_path = "models/cell_mlp_022124"
+model.load_state_dict(torch.load(model_path))
+model.eval()
+with torch.no_grad():
+    test_tensor = torch.from_numpy(test_data)
+    prediction_tensor = model(test_tensor.to(device).float())
+prediction = prediction_tensor.detach().numpy()
+a = metrics.mean_squared_error(prediction[:, 0], test_labels)
+
 # %%
